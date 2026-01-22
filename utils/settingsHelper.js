@@ -1,6 +1,7 @@
 const Settings = require('../models/Settings');
+const { getISTHour } = require('./istTimezone');
 
-// Get result reveal time from settings (default: 20 for 8 PM)
+// Get result reveal time from settings (default: 20 for 8 PM IST)
 exports.getResultTime = async () => {
   try {
     const setting = await Settings.findOne({ settingKey: 'result_time' }).lean();
@@ -12,12 +13,12 @@ exports.getResultTime = async () => {
   }
 };
 
-// Check if current time is after result time
+// Check if current time is after result time (IST timezone)
 exports.isAfterResultTime = async () => {
   try {
     const resultTime = await this.getResultTime();
-    const now = new Date();
-    return now.getHours() >= resultTime;
+    const currentHour = getISTHour();
+    return currentHour >= resultTime;
   } catch (error) {
     console.error('Error checking result time:', error.message);
     return false;

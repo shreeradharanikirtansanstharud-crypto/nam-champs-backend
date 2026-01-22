@@ -1,19 +1,23 @@
 const DailyCount = require('../models/DailyCount');
 const User = require('../models/User');
 const Settings = require('../models/Settings');
+const { getISTHour, getFormattedISTTime, getTodayDateIST } = require('../utils/istTimezone');
 
-// Get today's date at midnight
+// Get today's date in IST at midnight
 const getTodayDate = () => {
-  return new Date(new Date().setHours(0, 0, 0, 0));
+  return getTodayDateIST();
 };
 
-// Check if current time is after result time (configured in settings, default 8 PM)
+// Check if current time is after result time (configured in settings, default 8 PM IST)
 const isAfterResultTime = async () => {
   try {
     const setting = await Settings.findOne({ settingKey: 'result_time' }).lean();
     const resultTime = setting ? parseInt(setting.settingValue) : 20; // Default 8 PM (20:00)
-    const now = new Date();
-    return now.getHours() >= resultTime;
+    const currentHour = getISTHour();
+    
+    console.log(`🕐 ${getFormattedISTTime()} | Current Hour: ${currentHour} | Result Time: ${resultTime}`);
+    
+    return currentHour >= resultTime;
   } catch (error) {
     console.error('Error checking result time:', error.message);
     return false;
