@@ -1,0 +1,8 @@
+{
+  "android": {
+    "package": "com.shreeradharanikirtansanstharud.namchampsbackend"
+  },
+  "ios": {
+    "bundleIdentifier": "com.shreeradharanikirtansanstharud.namchampsbackend"
+  }
+}
