@@ -6,6 +6,7 @@ const cors = require('cors');
 const authRoutes = require('./routes/authRoutes');
 const countRoutes = require('./routes/countRoutes');
 const adminRoutes = require('./routes/adminRoutes');
+const Settings = require('./models/Settings');
 
 const app = express();
 
@@ -25,11 +26,43 @@ mongoose
   .connect(process.env.MONGODB_URI)
   .then(() => {
     console.log('✅ MongoDB connected successfully');
+    // Initialize default settings
+    initializeSettings();
   })
   .catch((error) => {
-    console.log('❌ MongoDB connection error:', error.message);
-    process.exit(1);
-  });
+  console.log('❌ MongoDB connection error:', error.message);
+});
+
+// Initialize default settings
+const initializeSettings = async () => {
+  try {
+    // Ensure result_time setting exists
+    const resultTimeSetting = await Settings.findOne({ settingKey: 'result_time' });
+    if (!resultTimeSetting) {
+      await Settings.create({
+        settingKey: 'result_time',
+        settingValue: 20,
+        type: 'time',
+        description: 'Hour when leaderboard results are revealed (0-23 in IST, default 20 = 8 PM)'
+      });
+      console.log('📝 Created default result_time setting: 20 (8 PM)');
+    }
+
+    // Ensure counting_closed_time setting exists
+    const countingClosedSetting = await Settings.findOne({ settingKey: 'counting_closed_time' });
+    if (!countingClosedSetting) {
+      await Settings.create({
+        settingKey: 'counting_closed_time',
+        settingValue: 24,
+        type: 'time',
+        description: 'Hour when counting is closed (0-23 in IST, or 24 for never closed, default 24 = never)'
+      });
+      console.log('📝 Created default counting_closed_time setting: 24 (never closed)');
+    }
+  } catch (error) {
+    console.error('❌ Error initializing settings:', error.message);
+  }
+};
 
 // Routes
 app.use('/api/auth', authRoutes);
@@ -49,8 +82,7 @@ app.use((err, req, res, next) => {
 });
 
 const PORT = process.env.PORT || 5001;
-app.listen(PORT, () => {
+app.listen(PORT, "0.0.0.0", () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`📍 Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`🔗 MongoDB URI: ${process.env.MONGODB_URI}`);
 });

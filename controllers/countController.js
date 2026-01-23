@@ -24,6 +24,7 @@ const isAfterResultTime = async () => {
   }
 };
 
+
 // Increment count for user today
 exports.incrementCount = async (req, res) => {
   try {
@@ -72,10 +73,14 @@ exports.getTodayCount = async (req, res) => {
       await dailyCount.save();
     }
 
+    // Get result_time for dynamic message
+    const resultTimeSetting = await Settings.findOne({ settingKey: 'result_time' }).lean();
+    const resultTime = resultTimeSetting ? parseInt(resultTimeSetting.settingValue) : 20;
     res.status(200).json({
       count: dailyCount.count,
       isActive: dailyCount.isActive,
       isCountingClosed: await isAfterResultTime(),
+      resultTime,
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -112,11 +117,6 @@ exports.syncCount = async (req, res) => {
     const userId = req.userId;
     const { count } = req.body;
     const today = getTodayDate();
-
-    // Check if counting is locked (after result time)
-    if (await isAfterResultTime()) {
-      return res.status(400).json({ message: 'Counting is closed for today (after result time)' });
-    }
 
     // Find or create today's count
     let dailyCount = await DailyCount.findOne({ userId, date: today });

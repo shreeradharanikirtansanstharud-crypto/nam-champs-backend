@@ -9,7 +9,14 @@
  */
 function getISTTime() {
   const now = new Date();
-  // Get UTC time and add 5.5 hours to get IST
+  // Check system timezone offset in minutes
+  // IST is UTC+5:30, so offset is -330
+  const offset = now.getTimezoneOffset();
+  // If system is already IST (offset -330), use system time
+  if (offset === -330) {
+    return now;
+  }
+  // Otherwise, add 5.5 hours to UTC
   const istTime = new Date(now.getTime() + (5.5 * 60 * 60 * 1000));
   return istTime;
 }
