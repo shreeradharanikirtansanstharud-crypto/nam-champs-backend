@@ -1,0 +1,248 @@
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h1 class="mb-4">
+            <i class="fas fa-chart-line"></i> Admin Dashboard
+        </h1>
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card bg-primary text-white shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title mb-0">Total Users</h6>
+                        <h2 class="mb-0"><%= stats.totalUsers %></h2>
+                    </div>
+                    <i class="fas fa-users fa-3x opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <div class="card bg-success text-white shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title mb-0">Active Users Today</h6>
+                        <h2 class="mb-0"><%= stats.activeUsersToday %></h2>
+                    </div>
+                    <i class="fas fa-user-check fa-3x opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <div class="card bg-warning text-white shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title mb-0">Avg Daily Count</h6>
+                        <h2 class="mb-0"><%= stats.avgDailyCount.toFixed(0) %></h2>
+                    </div>
+                    <i class="fas fa-calculator fa-3x opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <div class="card bg-info text-white shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title mb-0">Total Counts</h6>
+                        <h2 class="mb-0"><%= stats.totalCounts %></h2>
+                    </div>
+                    <i class="fas fa-list-ol fa-3x opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Section -->
+<div class="row">
+    <div class="col-lg-6 mb-4">
+        <div class="card shadow-sm">
+            <div class="card-header bg-light">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-chart-line"></i> Daily Count Trend (Last 30 Days)
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="dailyTrendChart" height="80"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6 mb-4">
+        <div class="card shadow-sm">
+            <div class="card-header bg-light">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-user-plus"></i> User Registrations (Last 30 Days)
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="registrationChart" height="80"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-6 mb-4">
+        <div class="card shadow-sm">
+            <div class="card-header bg-light">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-doughnut-chart"></i> Top 5 Active Users
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="topUsersChart" height="80"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6 mb-4">
+        <div class="card shadow-sm">
+            <div class="card-header bg-light">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-bar-chart"></i> Weekly Active Users
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="weeklyChart" height="80"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Wait for Chart.js to load
+    function initCharts() {
+        if (typeof Chart === 'undefined') {
+            setTimeout(initCharts, 100);
+            return;
+        }
+
+        // Daily Trend Chart
+        const dailyCtx = document.getElementById('dailyTrendChart').getContext('2d');
+        new Chart(dailyCtx, {
+        type: 'line',
+        data: {
+            labels: <%- JSON.stringify(charts.dailyLabels) %>,
+            datasets: [{
+                label: 'Daily Counts',
+                data: <%- JSON.stringify(charts.dailyData) %>,
+                borderColor: '#0d6efd',
+                backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                borderWidth: 2,
+                tension: 0.3,
+                fill: true,
+                pointRadius: 4,
+                pointBackgroundColor: '#0d6efd'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: true }
+            },
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
+    });
+
+    // Registration Chart
+    const regCtx = document.getElementById('registrationChart').getContext('2d');
+    new Chart(regCtx, {
+        type: 'bar',
+        data: {
+            labels: <%- JSON.stringify(charts.regLabels) %>,
+            datasets: [{
+                label: 'New Users',
+                data: <%- JSON.stringify(charts.regData) %>,
+                backgroundColor: '#198754',
+                borderColor: '#198754',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: true }
+            },
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
+    });
+
+    // Top Users Chart
+    const topCtx = document.getElementById('topUsersChart').getContext('2d');
+    new Chart(topCtx, {
+        type: 'doughnut',
+        data: {
+            labels: <%- JSON.stringify(charts.topUserNames) %>,
+            datasets: [{
+                data: <%- JSON.stringify(charts.topUserCounts) %>,
+                backgroundColor: [
+                    '#0d6efd',
+                    '#198754',
+                    '#ffc107',
+                    '#dc3545',
+                    '#17a2b8'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom' }
+            }
+        }
+    });
+
+    // Weekly Chart
+    const weeklyCtx = document.getElementById('weeklyChart').getContext('2d');
+    new Chart(weeklyCtx, {
+        type: 'bar',
+        data: {
+            labels: <%- JSON.stringify(charts.weeklyLabels) %>,
+            datasets: [{
+                label: 'Active Users',
+                data: <%- JSON.stringify(charts.weeklyData) %>,
+                backgroundColor: '#0d6efd',
+                borderColor: '#0d6efd',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: true }
+            },
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
+    });
+    }
+
+    // Initialize charts when page loads
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initCharts);
+    } else {
+        initCharts();
+    }
+</script>

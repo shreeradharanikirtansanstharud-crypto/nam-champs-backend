@@ -1,0 +1,163 @@
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1>
+                <i class="fas fa-users"></i> User Management
+            </h1>
+            <form action="/admin/users" method="GET" class="d-flex gap-2">
+                <input type="text" name="search" class="form-control" placeholder="Search users..." value="<%= search || '' %>">
+                <button class="btn btn-primary" type="submit">
+                    <i class="fas fa-search"></i> Search
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-header bg-light">
+        <h5 class="card-title mb-0">All Users (<%= users.length %>)</h5>
+    </div>
+    <div class="card-body">
+        <% if (users.length === 0) { %>
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i> No users found.
+            </div>
+        <% } else { %>
+            <div class="table-responsive">
+                <table class="table table-hover table-striped">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Username</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                            <th>Joined Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% users.forEach(user => { %>
+                            <tr>
+                                <td><small class="text-muted"><%= user._id.toString().substring(0, 12) %>...</small></td>
+                                <td><strong><%= user.name %></strong></td>
+                                <td><%= user.username %></td>
+                                <td><%= user.email || '-' %></td>
+                                <td><%= user.phone || '-' %></td>
+                                <td><%= new Date(user.createdAt).toLocaleDateString() %></td>
+                                <td>
+                                    <button class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#userModal" onclick="viewUserDetails('<%= user._id %>','<%= user.name %>','<%= user.username %>','<%= user.email || '' %>','<%= user.phone || '' %>','<%= user.address || '' %>')">
+                                        <i class="fas fa-eye"></i> View
+                                    </button>
+                                    <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#resetPasswordModal" onclick="setUserId('<%= user._id %>','<%= user.name %>')">
+                                        <i class="fas fa-key"></i> Reset Pass
+                                    </button>
+                                    <a href="/admin/users/<%= user._id %>/counts" class="btn btn-sm btn-success">
+                                        <i class="fas fa-chart-bar"></i> Counts
+                                    </a>
+                                </td>
+                            </tr>
+                        <% }); %>
+                    </tbody>
+                </table>
+            </div>
+        <% } %>
+    </div>
+</div>
+
+<!-- User Details Modal -->
+<div class="modal fade" id="userModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">User Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p><strong>Name:</strong> <span id="detailName"></span></p>
+                <p><strong>Username:</strong> <span id="detailUsername"></span></p>
+                <p><strong>Email:</strong> <span id="detailEmail"></span></p>
+                <p><strong>Phone:</strong> <span id="detailPhone"></span></p>
+                <p><strong>Address:</strong> <span id="detailAddress"></span></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reset Password Modal -->
+<div class="modal fade" id="resetPasswordModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Reset Password</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="/admin/reset-password" method="POST" onsubmit="return validatePassword();">
+                <div class="modal-body">
+                    <input type="hidden" name="userId" id="resetUserId">
+                    <p>Resetting password for: <strong id="resetUserName"></strong></p>
+                    
+                    <div class="mb-3">
+                        <label for="newPassword" class="form-label">New Password</label>
+                        <input type="password" class="form-control" id="newPassword" name="newPassword" required>
+                        <small class="text-muted">Minimum 6 characters</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="confirmPassword" class="form-label">Confirm Password</label>
+                        <input type="password" class="form-control" id="confirmPassword" required>
+                    </div>
+
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="sendEmail" name="sendEmail" value="true">
+                        <label class="form-check-label" for="sendEmail">
+                            Send password reset email to user
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-warning">
+                        <i class="fas fa-key"></i> Reset Password
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function viewUserDetails(id, name, username, email, phone, address) {
+    document.getElementById('detailName').textContent = name;
+    document.getElementById('detailUsername').textContent = username;
+    document.getElementById('detailEmail').textContent = email || '-';
+    document.getElementById('detailPhone').textContent = phone || '-';
+    document.getElementById('detailAddress').textContent = address || '-';
+}
+
+function setUserId(userId, userName) {
+    document.getElementById('resetUserId').value = userId;
+    document.getElementById('resetUserName').textContent = userName;
+}
+
+function validatePassword() {
+    const newPass = document.getElementById('newPassword').value;
+    const confirmPass = document.getElementById('confirmPassword').value;
+    
+    if (newPass.length < 6) {
+        alert('Password must be at least 6 characters');
+        return false;
+    }
+    
+    if (newPass !== confirmPass) {
+        alert('Passwords do not match');
+        return false;
+    }
+    
+    return true;
+}
+</script>

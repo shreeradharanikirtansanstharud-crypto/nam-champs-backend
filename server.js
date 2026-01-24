@@ -2,6 +2,8 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const path = require('path');
+const session = require('express-session');
 
 const authRoutes = require('./routes/authRoutes');
 const countRoutes = require('./routes/countRoutes');
@@ -9,11 +11,32 @@ const adminRoutes = require('./routes/adminRoutes');
 const Settings = require('./models/Settings');
 
 const app = express();
+const expressLayouts = require('express-ejs-layouts');
+app.use(expressLayouts);
+app.set('layout', 'layout');
+
+// Set view engine
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
+
+// Static files
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Middleware
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Session middleware for admin dashboard
+app.use(session({
+  secret: process.env.JWT_SECRET || 'your-secret-key',
+  resave: false,
+  saveUninitialized: false,
+  cookie: { 
+    secure: process.env.NODE_ENV === 'production',
+    maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+  }
+}));
 
 // Request logging middleware
 app.use((req, res, next) => {
@@ -68,6 +91,7 @@ const initializeSettings = async () => {
 app.use('/api/auth', authRoutes);
 app.use('/api/count', countRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/admin', adminRoutes);  // Admin HTML pages
 
 // Health check
 app.get('/api/health', (req, res) => {

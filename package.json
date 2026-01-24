@@ -13,10 +13,13 @@
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
+    "ejs": "^3.1.10",
     "expo": "~54.0.31",
     "express": "^4.18.2",
+    "express-session": "^1.17.3",
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^7.5.0",
+    "nodemailer": "^6.9.7",
     "react": "19.1.0",
     "react-native": "0.81.5"
   },
